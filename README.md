@@ -6,6 +6,7 @@ Changes:
 - Keep cursor on same tag when toggling 'hide nonpublic' option
 - Update status line when changing buffer or unpausing
 - Tab support (experimental): fix broken :tabe when tagbar is visible
+- Tab support (experimental): separate shared and per-tagbar instance data
 
 Changes are licensed under the same terms as the original
 
