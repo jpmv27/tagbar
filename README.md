@@ -1,3 +1,15 @@
+**This is a FORK of https://github.com/majutsushi/tagbar**
+
+Changes:
+
+- Add case-insensitive sort option
+- Keep cursor on same tag when toggling 'hide nonpublic' option
+- Update status line when changing buffer or unpausing
+
+Changes are licensed under the same terms as the original
+
+# Original README
+
 # Tagbar: a class outline viewer for Vim
 
 ## What Tagbar is
