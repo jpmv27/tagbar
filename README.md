@@ -6,10 +6,10 @@ Changes:
 - Keep cursor on same tag when toggling 'hide nonpublic' option
 - Update status line when changing buffer or unpausing
 - Add support for per-tab tagbar (experimental)
--- Fix broken :tabe when tagbar is visible
--- Separate shared and per-tagbar instance data
--- Give each tab its own tagbar buffer
--- Give each tab its own tagbar instance data
+    - Fix broken :tabe when tagbar is visible
+    - Separate shared and per-tagbar instance data
+    - Give each tab its own tagbar buffer
+    - Give each tab its own tagbar instance data
 
 Changes are licensed under the same terms as the original
 
