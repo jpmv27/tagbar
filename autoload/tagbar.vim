@@ -1574,7 +1574,7 @@ endfunction
 
 " s:KindheaderTag.toggleFold() {{{3
 function! s:KindheaderTag.toggleFold() abort dict
-    let fileinfo = s:state.getCurrent(0)
+    let fileinfo = s:known_files.getCurrent(0)
 
     let fileinfo.kindfolds[self.short] = !fileinfo.kindfolds[self.short]
 endfunction
@@ -1704,14 +1704,15 @@ function! s:FileInfo.closeKindFold(kind) abort dict
     let self.kindfolds[a:kind.short] = 1
 endfunction
 
-" Per-tagbar instance state {{{2
-let s:state = {
+" Known files {{{2
+let s:known_files = {
     \ '_current' : {},
     \ '_paused'  : {},
+    \ '_files'   : {}
 \ }
 
-" s:state.getCurrent() {{{3
-function! s:state.getCurrent(forcecurrent) abort dict
+" s:known_files.getCurrent() {{{3
+function! s:known_files.getCurrent(forcecurrent) abort dict
     if !s:paused || a:forcecurrent
         return self._current
     else
@@ -1719,20 +1720,15 @@ function! s:state.getCurrent(forcecurrent) abort dict
     endif
 endfunction
 
-" s:state.setCurrent() {{{3
-function! s:state.setCurrent(fileinfo) abort dict
+" s:known_files.setCurrent() {{{3
+function! s:known_files.setCurrent(fileinfo) abort dict
     let self._current = a:fileinfo
 endfunction
 
-" s:state.setPaused() {{{3
-function! s:state.setPaused() abort dict
+" s:known_files.setPaused() {{{3
+function! s:known_files.setPaused() abort dict
     let self._paused = self._current
 endfunction
-
-" Known files {{{2
-let s:known_files = {
-    \ '_files'   : {}
-\ }
 
 " s:known_files.get() {{{3
 function! s:known_files.get(fname) abort dict
@@ -1940,7 +1936,7 @@ function! s:CloseWindow() abort
         if winbufnr(2) != -1
             " Other windows are open, only close the tagbar one
 
-            let curfile = s:state.getCurrent(0)
+            let curfile = s:known_files.getCurrent(0)
 
             close
 
@@ -2042,7 +2038,7 @@ endfunction
 " the current file after startup.
 function! s:CorrectFocusOnStartup() abort
     if bufwinnr('__Tagbar__') != -1 && !g:tagbar_autofocus && !s:last_autofocus
-        let curfile = s:state.getCurrent(1)
+        let curfile = s:known_files.getCurrent(1)
         if !empty(curfile) && curfile.fpath != fnamemodify(bufname('%'), ':p')
             let winnr = bufwinnr(curfile.fpath)
             if winnr != -1
@@ -2639,7 +2635,7 @@ endfunction
 
 " s:ToggleSort() {{{2
 function! s:ToggleSort() abort
-    let fileinfo = s:state.getCurrent(0)
+    let fileinfo = s:known_files.getCurrent(0)
     if empty(fileinfo)
         return
     endif
@@ -2681,7 +2677,7 @@ function! s:RenderContent(...) abort
     if a:0 == 1
         let fileinfo = a:1
     else
-        let fileinfo = s:state.getCurrent(0)
+        let fileinfo = s:known_files.getCurrent(0)
     endif
 
     if empty(fileinfo)
@@ -2706,8 +2702,8 @@ function! s:RenderContent(...) abort
         call s:goto_win(tagbarwinnr, 1)
     endif
 
-    if !empty(s:state.getCurrent(0)) &&
-     \ fileinfo.fpath ==# s:state.getCurrent(0).fpath
+    if !empty(s:known_files.getCurrent(0)) &&
+     \ fileinfo.fpath ==# s:known_files.getCurrent(0).fpath
         " We're redisplaying the same file, so save the view
         call s:debug('Redisplaying file [' . fileinfo.fpath . ']')
         let saveline = line('.')
@@ -2751,8 +2747,8 @@ function! s:RenderContent(...) abort
 
     setlocal nomodifiable
 
-    if !empty(s:state.getCurrent(0)) &&
-     \ fileinfo.fpath ==# s:state.getCurrent(0).fpath
+    if !empty(s:known_files.getCurrent(0)) &&
+     \ fileinfo.fpath ==# s:known_files.getCurrent(0).fpath
         let scrolloff_save = &scrolloff
         set scrolloff=0
 
@@ -3252,7 +3248,7 @@ endfunction
 " Folding {{{1
 " s:OpenFold() {{{2
 function! s:OpenFold() abort
-    let fileinfo = s:state.getCurrent(0)
+    let fileinfo = s:known_files.getCurrent(0)
     if empty(fileinfo)
         return
     endif
@@ -3271,7 +3267,7 @@ endfunction
 
 " s:CloseFold() {{{2
 function! s:CloseFold() abort
-    let fileinfo = s:state.getCurrent(0)
+    let fileinfo = s:known_files.getCurrent(0)
     if empty(fileinfo)
         return
     endif
@@ -3292,7 +3288,7 @@ endfunction
 
 " s:ToggleFold() {{{2
 function! s:ToggleFold() abort
-    let fileinfo = s:state.getCurrent(0)
+    let fileinfo = s:known_files.getCurrent(0)
     if empty(fileinfo)
         return
     endif
@@ -3328,7 +3324,7 @@ function! s:SetFoldLevel(level, force) abort
         return
     endif
 
-    let fileinfo = s:state.getCurrent(0)
+    let fileinfo = s:known_files.getCurrent(0)
     if empty(fileinfo)
         return
     endif
@@ -3524,8 +3520,8 @@ function! s:AutoUpdate(fname, force) abort
     " file is being displayed
     if bufwinnr('__Tagbar__') != -1 && !s:paused &&
      \ (s:new_window || updated ||
-      \ (!empty(s:state.getCurrent(0)) &&
-       \ a:fname != s:state.getCurrent(0).fpath))
+      \ (!empty(s:known_files.getCurrent(0)) &&
+       \ a:fname != s:known_files.getCurrent(0).fpath))
         call s:RenderContent(fileinfo)
     endif
 
@@ -3533,7 +3529,7 @@ function! s:AutoUpdate(fname, force) abort
     " same file is being redisplayed
     if !empty(fileinfo)
         call s:debug('Setting current file [' . a:fname . ']')
-        call s:state.setCurrent(fileinfo)
+        call s:known_files.setCurrent(fileinfo)
         let s:nearby_disabled = 0
     endif
 
@@ -3749,7 +3745,7 @@ function! s:GetNearbyTag(all, forcecurrent, ...) abort
         return {}
     endif
 
-    let fileinfo = s:state.getCurrent(a:forcecurrent)
+    let fileinfo = s:known_files.getCurrent(a:forcecurrent)
     if empty(fileinfo)
         return {}
     endif
@@ -3785,7 +3781,7 @@ endfunction
 " does not contain a valid tag (for example because it is empty or only
 " contains a pseudo-tag) return an empty dictionary.
 function! s:GetTagInfo(linenr, ignorepseudo) abort
-    let fileinfo = s:state.getCurrent(0)
+    let fileinfo = s:known_files.getCurrent(0)
 
     if empty(fileinfo)
         return {}
@@ -3871,7 +3867,7 @@ endfunction
 
 " s:ToggleHideNonPublicTags() {{{2
 function! s:ToggleHideNonPublicTags() abort
-    let fileinfo = s:state.getCurrent(0)
+    let fileinfo = s:known_files.getCurrent(0)
     if empty(fileinfo)
         return
     endif
@@ -3897,7 +3893,7 @@ endfunction
 
 " s:ToggleCaseInsensitive() {{{2
 function! s:ToggleCaseInsensitive() abort
-    let fileinfo = s:state.getCurrent(0)
+    let fileinfo = s:known_files.getCurrent(0)
     if empty(fileinfo)
         return
     endif
@@ -3984,8 +3980,8 @@ function! s:SetStatusLine()
 
     let sort = g:tagbar_sort ? 'Name' : 'Order'
 
-    if !empty(s:state.getCurrent(0))
-        let fname = fnamemodify(s:state.getCurrent(0).fpath, ':t')
+    if !empty(s:known_files.getCurrent(0))
+        let fname = fnamemodify(s:known_files.getCurrent(0).fpath, ':t')
     else
         let fname = ''
     endif
@@ -4203,7 +4199,7 @@ function! tagbar#toggle_pause() abort
     let s:paused = !s:paused
 
     if s:paused
-        call s:state.setPaused()
+        call s:known_files.setPaused()
     else
         call s:AutoUpdate(fnamemodify(expand('%'), ':p'), 1)
     endif
@@ -4284,8 +4280,8 @@ endfunction
 function! tagbar#currentfile() abort
     let filename = ''
 
-    if !empty(s:state.getCurrent(1))
-        let filename = fnamemodify(s:state.getCurrent(1).fpath, ':t')
+    if !empty(s:known_files.getCurrent(1))
+        let filename = fnamemodify(s:known_files.getCurrent(1).fpath, ':t')
     endif
 
     return filename
