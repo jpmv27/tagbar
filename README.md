@@ -7,7 +7,6 @@ Changes:
 - Update status line when changing buffer or unpausing
 - Tab support (experimental): fix broken :tabe when tagbar is visible
 - Tab support (experimental): separate shared and per-tagbar instance data
-- Tab support (experimental): give each tab its own tagbar buffer
 
 Changes are licensed under the same terms as the original
 

@@ -66,7 +66,6 @@ let s:nearby_disabled = 0
 let s:paused = 0
 let s:pwin_by_tagbar = 0
 let s:vim_quitting = 0
-let s:buffer_seqno = 0
 
 let s:window_expanded   = 0
 let s:expand_bufnr = -1
@@ -945,7 +944,7 @@ function! s:RestoreSession() abort
 
     let curfile = fnamemodify(bufname('%'), ':p')
 
-    let tagbarwinnr = bufwinnr(s:TagbarBufName())
+    let tagbarwinnr = bufwinnr('__Tagbar__')
     if tagbarwinnr == -1
         " Tagbar wasn't open in the saved session, nothing to do
         return
@@ -1032,17 +1031,17 @@ function! s:CreateAutocommands() abort
 
     augroup TagbarAutoCmds
         autocmd!
-        autocmd CursorHold __Tagbar__.* call s:ShowPrototype(1)
-        autocmd WinEnter   __Tagbar__.* call s:SetStatusLine()
-        autocmd WinLeave   __Tagbar__.* call s:SetStatusLine()
+        autocmd CursorHold __Tagbar__ call s:ShowPrototype(1)
+        autocmd WinEnter   __Tagbar__ call s:SetStatusLine()
+        autocmd WinLeave   __Tagbar__ call s:SetStatusLine()
 
         if g:tagbar_autopreview
-            autocmd CursorMoved __Tagbar__.* nested call s:ShowInPreviewWin()
+            autocmd CursorMoved __Tagbar__ nested call s:ShowInPreviewWin()
         endif
 
         autocmd QuitPre * let s:vim_quitting = 1
         autocmd WinEnter * nested call s:QuitIfOnlyWindow()
-        autocmd WinEnter * if bufwinnr(s:TagbarBufName()) == -1 |
+        autocmd WinEnter * if bufwinnr('__Tagbar__') == -1 |
                          \     call s:ShrinkIfExpanded() |
                          \ endif
 
@@ -1769,7 +1768,7 @@ endfunction
 function! s:ToggleWindow() abort
     call s:debug('ToggleWindow called')
 
-    let tagbarwinnr = bufwinnr(s:TagbarBufName())
+    let tagbarwinnr = bufwinnr("__Tagbar__")
     if tagbarwinnr != -1
         call s:CloseWindow()
         return
@@ -1793,7 +1792,7 @@ function! s:OpenWindow(flags) abort
 
     " If the tagbar window is already open check jump flag
     " Also set the autoclose flag if requested
-    let tagbarwinnr = bufwinnr(s:TagbarBufName())
+    let tagbarwinnr = bufwinnr('__Tagbar__')
     if tagbarwinnr != -1
         if winnr() != tagbarwinnr && jump
             call s:goto_win(tagbarwinnr)
@@ -1830,7 +1829,7 @@ function! s:OpenWindow(flags) abort
         let openpos = g:tagbar_left ? 'leftabove ' : 'rightbelow '
         let width = g:tagbar_vertical
     endif
-    exe 'silent keepalt ' . openpos . width . 'split ' . s:TagbarBufName()
+    exe 'silent keepalt ' . openpos . width . 'split ' . '__Tagbar__'
     unlet s:window_opening
 
     call s:InitWindow(autoclose)
@@ -1926,7 +1925,7 @@ endfunction
 function! s:CloseWindow() abort
     call s:debug('CloseWindow called')
 
-    let tagbarwinnr = bufwinnr(s:TagbarBufName())
+    let tagbarwinnr = bufwinnr('__Tagbar__')
     if tagbarwinnr == -1
         return
     endif
@@ -1934,7 +1933,7 @@ function! s:CloseWindow() abort
     " Close the preview window if it was opened by us
     if s:pwin_by_tagbar
         pclose
-        let tagbarwinnr = bufwinnr(s:TagbarBufName())
+        let tagbarwinnr = bufwinnr('__Tagbar__')
     endif
 
     if winnr() == tagbarwinnr
@@ -2042,7 +2041,7 @@ endfunction
 " g:tagbar_left is set. This should work around it by jumping to the window of
 " the current file after startup.
 function! s:CorrectFocusOnStartup() abort
-    if bufwinnr(s:TagbarBufName()) != -1 && !g:tagbar_autofocus && !s:last_autofocus
+    if bufwinnr('__Tagbar__') != -1 && !g:tagbar_autofocus && !s:last_autofocus
         let curfile = s:state.getCurrent(1)
         if !empty(curfile) && curfile.fpath != fnamemodify(bufname('%'), ':p')
             let winnr = bufwinnr(curfile.fpath)
@@ -2266,7 +2265,7 @@ function! s:ExecuteCtagsOnFile(fname, realfname, typeinfo) abort
         call s:debug(ctags_output)
         " Only display an error message if the Tagbar window is open and we
         " haven't seen the error before.
-        if bufwinnr(s:TagbarBufName()) != -1 &&
+        if bufwinnr("__Tagbar__") != -1 &&
          \ (!s:known_files.has(a:realfname) ||
          \ !empty(s:known_files.get(a:realfname)))
             call s:warning('Tagbar: Could not execute ctags for ' . a:realfname . '!')
@@ -2690,7 +2689,7 @@ function! s:RenderContent(...) abort
         return
     endif
 
-    let tagbarwinnr = bufwinnr(s:TagbarBufName())
+    let tagbarwinnr = bufwinnr('__Tagbar__')
 
     if &filetype == 'tagbar'
         let in_tagbar = 1
@@ -3004,7 +3003,7 @@ function! s:HighlightTag(openfolds, ...) abort
         let s:last_highlight_tline = tagline
     endif
 
-    let tagbarwinnr = bufwinnr(s:TagbarBufName())
+    let tagbarwinnr = bufwinnr('__Tagbar__')
     if tagbarwinnr == -1
         return
     endif
@@ -3523,7 +3522,7 @@ function! s:AutoUpdate(fname, force) abort
 
     " Display the tagbar content if the tags have been updated or a different
     " file is being displayed
-    if bufwinnr(s:TagbarBufName()) != -1 && !s:paused &&
+    if bufwinnr('__Tagbar__') != -1 && !s:paused &&
      \ (s:new_window || updated ||
       \ (!empty(s:state.getCurrent(0)) &&
        \ a:fname != s:state.getCurrent(0).fpath))
@@ -3793,7 +3792,7 @@ function! s:GetTagInfo(linenr, ignorepseudo) abort
     endif
 
     " Don't do anything in empty and comment lines
-    let curline = getbufline(bufnr(s:TagbarBufName()), a:linenr)[0]
+    let curline = getbufline(bufnr('__Tagbar__'), a:linenr)[0]
     if curline =~ '^\s*$' || curline[0] == '"'
         return {}
     endif
@@ -3972,7 +3971,7 @@ endfunction
 " s:SetStatusLine() {{{2
 function! s:SetStatusLine()
     " Make sure we're actually in the Tagbar window
-    let tagbarwinnr = bufwinnr(s:TagbarBufName())
+    let tagbarwinnr = bufwinnr('__Tagbar__')
     if tagbarwinnr == -1
         return
     endif
@@ -4019,12 +4018,12 @@ endfunction
 function! s:QuitIfOnlyWindow() abort
     " If tagbar is the only window, then the window count in the
     " tab will be 1 and the only window in the tab will be the
-    " window for the __Tagbar__.* buffer
+    " window for the __Tagbar__ buffer
     let vim_quitting = s:vim_quitting
     let s:vim_quitting = 0
 
     if winnr('$') == 1
-        let tagbarwinnr = bufwinnr(s:TagbarBufName())
+        let tagbarwinnr = bufwinnr('__Tagbar__')
         if tagbarwinnr == -1
             return
         endif
@@ -4046,15 +4045,6 @@ function! s:QuitIfOnlyWindow() abort
     endif
 endfunction
 
-function! s:TagbarBufName() abort
-    if !exists('t:tagbar_buf_name')
-        let s:buffer_seqno += 1
-        let t:tagbar_buf_name = '__Tagbar__.' . s:buffer_seqno
-    endif
-
-    return t:tagbar_buf_name
-endfunction
-
 " s:goto_win() {{{2
 function! s:goto_win(winnr, ...) abort
     let cmd = type(a:winnr) == type(0) ? a:winnr . 'wincmd w'
@@ -4073,7 +4063,7 @@ endfunction
 " s:goto_tagbar() {{{2
 function! s:goto_tagbar(...) abort
     let noauto = a:0 > 0 ? a:1 : 0
-    call s:goto_win(bufwinnr(s:TagbarBufName()), noauto)
+    call s:goto_win(bufwinnr('__Tagbar__'), noauto)
 endfunction
 
 " s:mark_window() {{{2
@@ -4183,7 +4173,7 @@ function! tagbar#SetFoldLevel(level, force) abort
 endfunction
 
 function! tagbar#highlighttag(openfolds, force) abort
-    let tagbarwinnr = bufwinnr(s:TagbarBufName())
+    let tagbarwinnr = bufwinnr('__Tagbar__')
     if tagbarwinnr == -1
         echohl WarningMsg
         echomsg "Warning: Can't highlight tag, Tagbar window not open"
