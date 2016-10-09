@@ -1,3 +1,15 @@
+**This is a FORK of https://github.com/majutsushi/tagbar**
+
+Changes:
+
+- Add case-insensitive sort option (merged upstream)
+- Keep cursor on same tag when toggling 'hide non-public' option (merged upstream)
+- Fix issues when switching tabs with tagbar open (merged upstream)
+- Don't close new tab (merged upstream)
+
+Changes are licensed under the same terms as the original
+
+# Original README
 # Tagbar: a class outline viewer for Vim
 
 ## What Tagbar is
