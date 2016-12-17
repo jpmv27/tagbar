@@ -6,6 +6,7 @@ Changes:
 - Keep cursor on same tag when toggling 'hide non-public' option (merged upstream)
 - Fix issues when switching tabs with tagbar open (merged upstream)
 - Don't close new tab (merged upstream)
+- Ignore BufDelete autocmd caused by 'set nobuflisted' (experimental)
 
 Changes are licensed under the same terms as the original
 
